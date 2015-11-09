@@ -8,6 +8,9 @@
  */
 
 // Include a performance.now polyfill
+// TODO: Remove performance object usage.
+var window = typeof self !== 'undefined' ? self.window || {} : {}; // jshint ignore:line
+
 (function () {
 
 	if ('performance' in window === false) {
@@ -113,10 +116,69 @@ TWEEN.Tween = function (object) {
 	var _onCompleteCallback = null;
 	var _onStopCallback = null;
 
+	var _elapsedTime = null;
+
 	// Set all starting values present on the target object
 	for (var field in object) {
 		_valuesStart[field] = parseFloat(object[field], 10);
 	}
+
+	this.isPlaying = function () {
+		return _isPlaying;
+	};
+
+	this.toJSON = function () {
+		return {
+			_object: _object,
+			_valuesStart: _valuesStart,
+			_valuesEnd: _valuesEnd,
+			_valuesStartRepeat: _valuesStartRepeat,
+			_duration: _duration,
+			_repeat: _repeat,
+			_yoyo: _yoyo,
+			_isPlaying: _isPlaying,
+			_reversed: _reversed,
+			_delayTime: _delayTime,
+			_startTime: _startTime,
+			_easingFunction: _easingFunction.key,
+			_interpolationFunction: _interpolationFunction.key,
+			_chainedTweens: _chainedTweens.map(function (tween) {
+				return tween.dump();
+			}),
+
+			_onStartCallbackFired: _onStartCallbackFired,
+			_elapsedTime: _elapsedTime
+		};
+	};
+
+	this.import = function (dumpobj) {
+		// Do not change reference to _object.
+		Object.keys(dumpobj._object).forEach(function (key) {
+			_object[key] = dumpobj._object[key];
+		});
+
+		_valuesStart = dumpobj._valuesStart;
+		_valuesEnd = dumpobj._valuesEnd;
+		_valuesStartRepeat = dumpobj._valuesStartRepeat;
+		_duration = dumpobj._duration;
+		_repeat = dumpobj._repeat;
+		_yoyo = dumpobj._yoyo;
+		_isPlaying = dumpobj._isPlaying;
+		_reversed = dumpobj._reversed;
+		_delayTime = dumpobj._delayTime;
+		_startTime = dumpobj._startTime;
+		_easingFunction = TWEEN.getEasingFunction(dumpobj._easingFunction);
+		_interpolationFunction = TWEEN.getInterpolationFunction(dumpobj._interpolationFunction);
+		_chainedTweens = dumpobj._chainedTweens.map(function (data) {
+			var tween = new TWEEN.Tween();
+
+			tween.restore(data);
+			return tween;
+		});
+
+		_onStartCallbackFired = dumpobj._onStartCallbackFired;
+		_elapsedTime = dumpobj._elapsedTime;
+	};
 
 	this.to = function (properties, duration) {
 
@@ -139,6 +201,7 @@ TWEEN.Tween = function (object) {
 		_onStartCallbackFired = false;
 
 		_startTime = time !== undefined ? time : window.performance.now();
+		_elapsedTime = _startTime;
 		_startTime += _delayTime;
 
 		for (var property in _valuesEnd) {
@@ -266,11 +329,17 @@ TWEEN.Tween = function (object) {
 
 	};
 
+	this.update2 = function (dt) {
+		_elapsedTime += dt;
+		return this.update(_elapsedTime);
+	};
+
 	this.update = function (time) {
 
 		var property;
 		var elapsed;
 		var value;
+		var newObject = {};
 
 		if (time < _startTime) {
 			return true;
@@ -298,7 +367,7 @@ TWEEN.Tween = function (object) {
 
 			if (end instanceof Array) {
 
-				_object[property] = _interpolationFunction(end, value);
+				newObject[property] = _interpolationFunction(end, value);
 
 			} else {
 
@@ -309,7 +378,7 @@ TWEEN.Tween = function (object) {
 
 				// Protect against non numeric properties.
 				if (typeof (end) === 'number') {
-					_object[property] = start + (end - start) * value;
+					newObject[property] = start + (end - start) * value;
 				}
 
 			}
@@ -317,7 +386,14 @@ TWEEN.Tween = function (object) {
 		}
 
 		if (_onUpdateCallback !== null) {
-			_onUpdateCallback.call(_object, value);
+			// Collision... or something else.
+			if (_onUpdateCallback.call(_object, value, newObject) === false) {
+				return false;
+			}
+		}
+
+		for (property in newObject) {
+			_object[property] = newObject[property];
 		}
 
 		if (elapsed === 1) {
@@ -847,6 +923,36 @@ TWEEN.Interpolation = {
 
 	}
 
+};
+
+function walk(map, path, obj) {
+	Object.keys(obj).forEach(function (name) {
+		var prop = obj[name];
+
+		if (typeof prop === 'function') {
+			prop.key = [path, name].join('');
+
+			// Fill lookup table
+			map[prop.key] = prop;
+			return;
+		}
+
+		return walk(map, name + '.', prop);
+	});
+}
+
+var easingFuncs = {};
+
+walk(easingFuncs, '', TWEEN.Easing);
+TWEEN.getEasingFunction = function getEasingFunction(key) {
+	return easingFuncs[key];
+};
+
+var interpolationFuncs = {};
+
+walk(interpolationFuncs, '', TWEEN.Interpolation);
+TWEEN.getInterpolationFunction = function getInterpolationFunction(key) {
+	return interpolationFuncs[key];
 };
 
 // UMD (Universal Module Definition)

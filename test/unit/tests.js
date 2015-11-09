@@ -344,6 +344,57 @@
 
 			},
 
+			'Test TWEEN.Tween.delay() (update2 test)': function(test) {
+
+				var obj = { x: 1 },
+					t = new TWEEN.Tween( obj );
+
+				t.to( { x: 2 }, 1000 );
+				t.delay( 500 );
+				t.start( 0 );
+
+				t.update2( 100 );
+
+				test.deepEqual( obj.x, 1, "Tween hasn't started yet" );
+
+				t.update2( 1000 - 100 );
+
+				test.ok( (obj.x !== 1) && (obj.x !== 2), "Tween has started but hasn't finished yet" );
+
+				t.update2( 1500 - 1000 );
+
+				test.equal( obj.x, 2, "Tween finishes when expected" );
+				test.done();
+
+			},
+
+			'Test TWEEN.Tween.delay() (dump & restore test)': function(test) {
+
+				var obj = { x: 1 },
+					t = new TWEEN.Tween( obj );
+
+				t.to( { x: 2 }, 1000 );
+				t.delay( 500 );
+				t.start( 0 );
+
+				t.update2( 100 );
+
+				test.deepEqual( obj.x, 1, "Tween hasn't started yet" );
+
+				t.update2( 1000 - 100 );
+
+				test.ok( (obj.x !== 1) && (obj.x !== 2), "Tween has started but hasn't finished yet" );
+
+				var t2 = new TWEEN.Tween(obj);
+				t2.import(t.toJSON());
+
+				t2.update2( 1500 - 1000 );
+
+				test.equal( obj.x, 2, "Tween finishes when expected" );
+				test.done();
+
+			},
+
 			// TODO: not really sure how to test this. Advice appreciated!
 			'Test TWEEN.Tween.easing()': function(test) {
 
@@ -862,6 +913,32 @@
 				test.done();
 
 			},
+
+			'Test TWEEN.Easing.func.key': function (test) {
+				test.equal(TWEEN.Easing.Linear.None.key, 'Linear.None');
+
+				test.done();
+			},
+
+			'Test TWEEN.getEasingFunction()': function (test) {
+				var LinearNone = TWEEN.getEasingFunction('Linear.None');
+				test.equal(LinearNone, TWEEN.Easing.Linear.None);
+
+				test.done();
+			},
+
+			'Test TWEEN.Interpolation.func.key': function (test) {
+				test.equal(TWEEN.Interpolation.Linear.key, 'Linear');
+
+				test.done();
+			},
+
+			'Test TWEEN.getInterpolationFunction()': function (test) {
+				var Linear = TWEEN.getInterpolationFunction('Linear');
+				test.equal(Linear, TWEEN.Interpolation.Linear);
+
+				test.done();
+			}
 
 		};
 
