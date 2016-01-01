@@ -12,6 +12,9 @@ export function update(time?:number): boolean;
 
 export class Tween {
   constructor(object?:any);
+  isPlaying(): boolean;
+  toJSON(): any;
+  import(dumpobj: any): void;
   to(properties:any, duration:number): Tween;
   start(time?:number): Tween;
   stop(): Tween;
@@ -23,6 +26,7 @@ export class Tween {
   onUpdate(callback: (object?: any) => void): Tween;
   onComplete(callback: (object?: any) => void): Tween;
   update(time: number): boolean;
+  update2(time: number): boolean;
   repeat(times: number): Tween;
   yoyo(enable: boolean): Tween;
 }
