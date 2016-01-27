@@ -13,8 +13,8 @@ export function update(time?:number): boolean;
 export class Tween {
   constructor(object?:any);
   isPlaying(): boolean;
-  toJSON(): any;
-  import(dumpobj: any): void;
+  serialize(): any;
+  deserialize(data: any): void;
   to(properties:any, duration:number): Tween;
   start(time?:number): Tween;
   stop(): Tween;
@@ -24,6 +24,8 @@ export class Tween {
   chain(...tweens:Tween[]): Tween;
   onStart(callback: (object?: any) => void): Tween;
   onUpdate(callback: (object?: any) => void): Tween;
+  onUpdate(callback: (value: any, newPos: any) => void): Tween;
+  onStop(callback: (object?: any) => void): Tween;
   onComplete(callback: (object?: any) => void): Tween;
   update(time: number): boolean;
   update2(time: number): boolean;

@@ -127,7 +127,7 @@ TWEEN.Tween = function (object) {
 		return _isPlaying;
 	};
 
-	this.toJSON = function () {
+	this.serialize = function () {
 		return {
 			_object: _object,
 			_valuesStart: _valuesStart,
@@ -143,7 +143,7 @@ TWEEN.Tween = function (object) {
 			_easingFunction: _easingFunction.key,
 			_interpolationFunction: _interpolationFunction.key,
 			_chainedTweens: _chainedTweens.map(function (tween) {
-				return tween.dump();
+				return tween.serialize();
 			}),
 
 			_onStartCallbackFired: _onStartCallbackFired,
@@ -151,33 +151,32 @@ TWEEN.Tween = function (object) {
 		};
 	};
 
-	this.import = function (dumpobj) {
+	this.deserialize = function (data) {
 		// Do not change reference to _object.
-		Object.keys(dumpobj._object).forEach(function (key) {
-			_object[key] = dumpobj._object[key];
+		Object.keys(data._object).forEach(function (key) {
+			_object[key] = data._object[key];
 		});
 
-		_valuesStart = dumpobj._valuesStart;
-		_valuesEnd = dumpobj._valuesEnd;
-		_valuesStartRepeat = dumpobj._valuesStartRepeat;
-		_duration = dumpobj._duration;
-		_repeat = dumpobj._repeat;
-		_yoyo = dumpobj._yoyo;
-		_isPlaying = dumpobj._isPlaying;
-		_reversed = dumpobj._reversed;
-		_delayTime = dumpobj._delayTime;
-		_startTime = dumpobj._startTime;
-		_easingFunction = TWEEN.getEasingFunction(dumpobj._easingFunction);
-		_interpolationFunction = TWEEN.getInterpolationFunction(dumpobj._interpolationFunction);
-		_chainedTweens = dumpobj._chainedTweens.map(function (data) {
+		_valuesStart = data._valuesStart;
+		_valuesEnd = data._valuesEnd;
+		_valuesStartRepeat = data._valuesStartRepeat;
+		_duration = data._duration;
+		_repeat = data._repeat;
+		_yoyo = data._yoyo;
+		_isPlaying = data._isPlaying;
+		_reversed = data._reversed;
+		_delayTime = data._delayTime;
+		_startTime = data._startTime;
+		_easingFunction = TWEEN.getEasingFunction(data._easingFunction);
+		_interpolationFunction = TWEEN.getInterpolationFunction(data._interpolationFunction);
+		_chainedTweens = data._chainedTweens.map(function (data) {
 			var tween = new TWEEN.Tween();
-
-			tween.restore(data);
+			tween.deserialize(data);
 			return tween;
 		});
 
-		_onStartCallbackFired = dumpobj._onStartCallbackFired;
-		_elapsedTime = dumpobj._elapsedTime;
+		_onStartCallbackFired = data._onStartCallbackFired;
+		_elapsedTime = data._elapsedTime;
 	};
 
 	this.to = function (properties, duration) {
