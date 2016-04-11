@@ -158,8 +158,8 @@ TWEEN.Tween = function (object) {
 		});
 
 		_valuesStart = data._valuesStart;
-		_valuesEnd = data._valuesEnd;
-		_valuesStartRepeat = data._valuesStartRepeat;
+		_valuesEnd = data._valuesEnd || {};
+		_valuesStartRepeat = data._valuesStartRepeat || {};
 		_duration = data._duration;
 		_repeat = data._repeat;
 		_yoyo = data._yoyo;
